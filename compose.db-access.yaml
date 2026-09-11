@@ -1,0 +1,13 @@
+# Optional override: publish PostgreSQL so a desktop client (DBeaver, psql, pgAdmin)
+# can reach it at a stable address instead of the container's changing IP.
+#
+#   docker compose -f compose.yaml -f compose.db-access.yaml up -d
+#
+# Loopback only by default, so the database stays unreachable from the network.
+# Do not set DB_BIND=0.0.0.0 unless you genuinely intend to expose the database.
+# The base compose.yaml publishes no database port at all; this file is opt-in and
+# the plain `docker compose up -d` behaviour is unchanged.
+services:
+  db:
+    ports:
+      - "${DB_BIND:-127.0.0.1}:5432:5432"

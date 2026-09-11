@@ -188,6 +188,39 @@ npx expo export --platform ios
 
 Validation actually performed is recorded in `docs/VALIDATION.md`. A Metro iOS bundle is not equivalent to a signed native build or a device test.
 
+## Inspect the database with a desktop client
+
+The base `compose.yaml` publishes no database port. To point DBeaver, pgAdmin or `psql`
+at it, add the opt-in override:
+
+```sh
+docker compose -f compose.yaml -f compose.db-access.yaml up -d
+```
+
+That publishes PostgreSQL on `127.0.0.1:5432` only — loopback, still unreachable from
+the network. Connect with:
+
+| Field | Value |
+|---|---|
+| Host | `127.0.0.1` |
+| Port | `5432` |
+| Database | `pocket` |
+| User | `pocket` |
+| Password | `POSTGRES_PASSWORD` from `.env` |
+
+Tables are `Account`, `Transaction` and `Budget`, plus Prisma's `_prisma_migrations`.
+They are quoted CamelCase identifiers, so in SQL you must write `SELECT * FROM "Account"`
+— unquoted `account` will not resolve.
+
+Without the override you can still reach the container directly on the Compose network
+(`docker inspect pocket-ledger-db-1` shows its IP, e.g. `172.18.0.2:5432`), but that
+address changes whenever the container is recreated, so a saved connection will break.
+`docker compose exec db psql -U pocket -d pocket` always works and needs no port at all.
+
+Treat this as read-mostly access. Writing rows by hand bypasses the API's validation and
+the invariants the app depends on — signed whole VND within ±2,000,000,000, paired
+`transferId` legs, and `externalId` deduplication. Take a `pg_dump` before editing anything.
+
 ## Backup and token rotation
 
 - Settings → Export all data uses the system share sheet to share JSON. Be mindful of the destination because this contains financial data.

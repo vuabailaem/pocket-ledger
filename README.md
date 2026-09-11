@@ -19,7 +19,7 @@ This is a focused implementation based on Kebo's product direction and adapted c
 
 ## Try the app without a server
 
-Use Node.js 20.19.4 or newer (tested on 20.20.2) and npm. Install Expo Go compatible with SDK 55 on your iPhone.
+Use Node.js 20.19.4 or newer (tested on 20.20.2) and npm. Install Expo Go from the App Store; the project targets **Expo SDK 57**, the current release, so the store version of Expo Go supports it.
 
 ```sh
 cd apps/mobile
@@ -29,7 +29,7 @@ npm start
 
 Scan the Expo QR code with your iPhone on the same network. The app opens in **Demo mode** with sample data; edits are saved locally. No API key is needed for the demo. Language: **Settings → Language → Tiếng Việt / English**.
 
-If your Expo Go version no longer supports SDK 55, use the development/native build below instead. The exact Expo dependencies are locked in `package-lock.json`.
+Expo Go only runs the SDK versions it ships with, so when SDK 57 ages out you will need to upgrade the project (`npx expo install expo@^NN && npx expo install --fix`) or use the development/native build below. The exact dependency versions are locked in `package-lock.json`.
 
 ## Run your private backend
 

@@ -6,8 +6,8 @@ Two rounds are described: a build-only round, and a round that ran the real stac
 ## Round 2 — 2026-09-11, running stack
 
 Environment: Ubuntu 24.04.4 LTS (kernel 6.8), Node.js 20.20.2, npm 10.8.2,
-Docker 29.5.2, Docker Compose v5.1.4, PostgreSQL 17-alpine, Expo SDK 55
-(runtime `exposdk:55.0.0`), React Native 0.83.10.
+Docker 29.5.2, Docker Compose v5.1.4, PostgreSQL 17-alpine, Expo SDK 57
+(runtime `exposdk:57.0.0`), React Native 0.86.3, React 19.2.3.
 
 ### Build and static checks
 
@@ -15,11 +15,29 @@ Docker 29.5.2, Docker Compose v5.1.4, PostgreSQL 17-alpine, Expo SDK 55
 - `npm run build` in `apps/api`: Prisma Client 6.19.0 generated, TypeScript compiled.
 - `npm test`: 9/9 domain tests pass.
 - `npm run typecheck` in `apps/mobile`: clean in strict mode.
-- `npx expo export --platform ios`: 610 modules, ~1.8 MB Hermes bundle.
-- Node 20.20.2 is sufficient. React Native 0.83 requires `>= 20.19.4`; the earlier
-  "Node.js 24" note described the previous environment, not a requirement.
-- `npx expo install --fix` aligned `react-native` 0.83.4 to the 0.83.10 expected by
-  the installed Expo SDK 55. Typecheck and iOS export were re-run after the change.
+- `npx expo export --platform ios`: 623 modules, ~1.6 MB Hermes bundle.
+- Node 20.20.2 is sufficient. React Native 0.86 accepts
+  `^20.19.4 || ^22.13.0 || ^24.3.0 || >= 25.0.0`; the earlier "Node.js 24" note described
+  the previous environment, not a requirement.
+- `npx expo-doctor`: 21/21 checks pass.
+
+### Expo SDK 55 → 57 upgrade
+
+Upgraded with `npm install expo@^57.0.0` then `npx expo install --fix`, which moved
+React Native 0.83.10 → 0.86.3, React 19.2.0 → 19.2.3, TypeScript 5.9 → 6.0, and the
+`expo-*` packages to their 57 lines. `expo install --fix` also registered
+`expo-status-bar` as a config plugin in `app.json`, which SDK 57 requires.
+
+Re-verified after the upgrade: strict typecheck clean, `expo-doctor` 21/21, iOS export
+succeeds, the dev server advertises `exposdk:57.0.0`, and Metro serves the dev bundle
+over the LAN. The app's source needed **no changes** — the APIs it uses
+(`expo-file-system`'s `File` with `.size`/`.text()`, `DocumentPicker.getDocumentAsync`
+with `copyToCacheDirectory`, SecureStore's `get/set/deleteItemAsync`) are all still
+present, and `File.size` is typed `number`, so the 1 MB import guard remains sound.
+
+Not covered by any of this: SDK 57 runs the New Architecture, and no screen has been
+rendered on a device under it. Layout, gestures and the share sheet still need a real
+iPhone before the upgrade can be called good.
 
 ### Database and API — now actually executed
 
@@ -60,8 +78,8 @@ Executed with `curl` against the running container. Covered:
 
 ### Expo dev server
 
-- `npx expo start --go --lan` serves the iOS manifest with `runtimeVersion exposdk:55.0.0`.
-- Metro compiled and served the full iOS dev bundle (~5 MB) over the LAN address in ~5 s,
+- `npx expo start --go --lan` serves the iOS manifest with `runtimeVersion exposdk:57.0.0`.
+- Metro compiled and served the full iOS dev bundle (~4 MB) over the LAN address in ~4 s,
   confirming a phone on the same network can fetch it.
 - The API was reachable over both LAN interfaces of this machine once `API_BIND=0.0.0.0`
   was set (see README, "Reach the API from your iPhone").

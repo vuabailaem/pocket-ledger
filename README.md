@@ -19,7 +19,7 @@ This is a focused implementation based on Kebo's product direction and adapted c
 
 ## Try the app without a server
 
-Use Node.js 24 and npm. Install Expo Go compatible with SDK 55 on your iPhone.
+Use Node.js 20.19.4 or newer (tested on 20.20.2) and npm. Install Expo Go compatible with SDK 55 on your iPhone.
 
 ```sh
 cd apps/mobile
@@ -57,7 +57,52 @@ docker compose --profile https up -d --build
 
 Open TCP 80/443 on that server. Caddy obtains HTTPS certificates automatically. In the app, open **Settings → Your private server**, enter `https://your-domain` and `OWNER_TOKEN`, and tap **Connect**. There is one owner, no public signup. Demo data is not imported into the server.
 
+For a phone on your own network without a domain, see the next section instead.
+
 No server/domain or Apple developer account was supplied in this task, so no remote backend or signed iPhone build has been deployed.
+
+## Reach the API from your iPhone
+
+`localhost` on the phone means the phone, not this computer, and an Expo tunnel only
+exposes Metro — not the backend. So the phone needs a real address for the API.
+
+By default Compose publishes the API on loopback only. For development on a trusted
+home network, set the bind address in `.env` and recreate the container:
+
+```sh
+echo 'API_BIND=0.0.0.0' >> .env
+docker compose up -d
+```
+
+Find the address of the interface your phone shares — on this machine the phone is on
+Wi-Fi, so use the Wi-Fi address:
+
+```sh
+ip -4 addr show scope global | grep inet
+curl http://<that-address>:3000/health
+```
+
+Start Metro on the same interface so the QR code points at an address the phone can reach:
+
+```sh
+cd apps/mobile
+REACT_NATIVE_PACKAGER_HOSTNAME=<that-address> npx expo start --go --lan
+```
+
+Then in the app: **Settings → Your private server**, URL `http://<that-address>:3000`,
+paste `OWNER_TOKEN`, tap **Connect**. Plain `http://` is accepted **only** in a
+development build; a release build requires `https://`.
+
+Caveats:
+
+- This sends the owner token in clear text over your LAN. Use it on a network you trust,
+  and use the `https` Caddy profile for anything beyond local development.
+- Docker publishes ports through its own iptables chain, so a `ufw` rule will not block
+  port 3000 once `API_BIND=0.0.0.0`. Set it back to `127.0.0.1` when you are done.
+- Windows: if you run Docker inside WSL2, also allow the port through Windows Firewall,
+  and prefer Docker Desktop's WSL integration so the port is published on the Windows host.
+- Phone and computer must be on the same subnet. If Metro picks the wrong interface,
+  `REACT_NATIVE_PACKAGER_HOSTNAME` overrides it.
 
 ## Configure SePay
 
@@ -129,6 +174,9 @@ For a locally reachable PostgreSQL database, create `apps/api/.env` from its exa
 node --env-file=.env node_modules/prisma/build/index.js migrate deploy
 npm run dev
 ```
+
+`npm run dev` compiles with `tsc` and then runs `dist/main.js`, because NestJS needs
+emitted decorator metadata. It is not a watch mode: re-run it after each change.
 
 The dev command compiles once and starts the compiled Nest app (decorator metadata required). After changes, re-run it. For mobile checks:
 

@@ -21,7 +21,9 @@ services:
       OWNER_TOKEN: ${OWNER_TOKEN:?Set OWNER_TOKEN in .env}
       SEPAY_WEBHOOK_KEY: ${SEPAY_WEBHOOK_KEY:-}
     ports:
-      - "127.0.0.1:3000:3000"
+      # Loopback by default. Set API_BIND=0.0.0.0 in .env to reach the API from
+      # your iPhone over the LAN during development (plain HTTP, trusted network only).
+      - "${API_BIND:-127.0.0.1}:3000:3000"
     depends_on:
       db:
         condition: service_healthy

@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+model Account {
+  id String @id @default(uuid())
+  name String
+  openingBalance Int @default(0)
+  bankNumber String? @unique
+  transactions Transaction[]
+}
+model Transaction {
+  id String @id @default(uuid())
+  accountId String
+  account Account @relation(fields: [accountId], references: [id])
+  amount Int
+  date String
+  category String
+  note String @default("")
+  source String @default("manual")
+  externalId String? @unique
+  transferId String?
+  createdAt DateTime @default(now())
+  @@index([date])
+}
+model Budget {
+  id String @id @default(uuid())
+  month String
+  category String
+  amount Int
+  @@unique([month, category])
+}

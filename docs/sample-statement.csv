@@ -1,0 +1,4 @@
+reference,date,amount,category,note
+BANK-202609-001,2026-09-01,28000000,salary,Monthly salary
+BANK-202609-002,2026-09-02,-85000,food,"Coffee, lunch"
+BANK-202609-003,2026-09-03,-120000,transport,Taxi

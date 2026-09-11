@@ -1,0 +1,30 @@
+{
+  "name": "@pocket/api",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "prisma generate && tsc",
+    "start": "node dist/main.js",
+    "dev": "tsc && node --env-file=.env dist/main.js",
+    "db:deploy": "prisma migrate deploy",
+    "test": "node --import tsx --test ../../tests/*.test.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "11.1.6",
+    "@nestjs/core": "11.1.6",
+    "@nestjs/platform-express": "11.1.6",
+    "@prisma/client": "6.19.0",
+    "csv-parse": "6.1.0",
+    "helmet": "8.1.0",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.3",
+    "@types/node": "24.3.0",
+    "prisma": "6.19.0",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2"
+  }
+}
